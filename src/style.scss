@@ -1,13 +1,27 @@
 .board {
-  margin-top: 2rem;
   background-color: red;
+  color: white;
 }
 
 .cell {
-  background-color: blue;
-  width: 48px;
-  height: 48px;
-  font-weight: bold;
-  font-size: 1.5rem;
-  text-transform: uppercase;
+  width: 60px;
+  height: 60px;
+  border: 2px solid #ccc;
+  margin-right: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.cell--correct {
+    background-color: green;
+    color: white;
+  }
+  &.cell--present {
+    background-color: orange;
+    color: white;
+  }
+  &.cell--absent {
+    background-color: lightgray;
+    color: white;
+  }
 }
