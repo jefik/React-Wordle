@@ -1,0 +1,13 @@
+.board {
+  margin-top: 2rem;
+  background-color: red;
+}
+
+.cell {
+  background-color: blue;
+  width: 48px;
+  height: 48px;
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+}
