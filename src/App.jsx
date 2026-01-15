@@ -58,7 +58,7 @@ async function isValidWord(word) {
   }
 }
 function App() {
-  /* const [targetWord, setTargetWord] = useState(""); */
+  const [targetWord, setTargetWord] = useState("");
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses] = useState([]);
   const [gameStatus, setGameStatus] = useState("playing");
@@ -68,8 +68,34 @@ function App() {
   const WORD_LENGTH = 5;
   const MAX_ATTEMPTS = 6;
 
-  const targetWord = "APPLE";
+  /* const targetWord = "APPLE"; */
   const [message, setMessage] = useState("");
+  const [showTargetWord, setShowTargetWord] = useState(false);
+
+  useEffect(() => {
+    async function loadTargetWord() {
+      try {
+        let valid = false;
+        let word = "";
+
+        while (!valid) {
+          const response = await fetch("https://random-word-api.herokuapp.com/word?length=5");
+          const data = await response.json();
+
+          word = data[0].toUpperCase();
+          valid = await isValidWord(word);
+          console.log("Fetched word:", word, "Valid:", valid);
+        }
+
+        setTargetWord(word);
+        console.log("Valid target word:", word);
+      } catch (error) {
+        console.error("Failed to fetch target word:", error);
+      }
+    }
+
+    loadTargetWord();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = async (event) => {
@@ -133,11 +159,6 @@ function App() {
           return;
         }
 
-        console.log("ENTER pressed");
-        console.log("currentGuess:", currentGuess);
-        console.log("length:", currentGuess.length);
-        console.log("WORD_LENGTH:", WORD_LENGTH);
-
         setCurrentGuess("");
         setCurrentRow((prevRow) => prevRow + 1);
         return;
@@ -190,7 +211,12 @@ function App() {
       <div className="app container">
         <div className="board">
           <p className="text-center">
-            Current guess:{" "}
+            Word is: {showTargetWord ? targetWord : "*****"} <br />
+            <button className="btn btn-primary" onClick={() => setShowTargetWord(!showTargetWord)}>
+              {showTargetWord ? "Hide" : "Reveal"} Word
+            </button>
+            <br />
+            Current guess:
             <strong>
               {currentGuess} <br />
               Row: {currentRow + 1} / {MAX_ATTEMPTS} <br /> Status: {gameStatus} <br />
