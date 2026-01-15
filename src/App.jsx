@@ -30,6 +30,33 @@ function compareGuess(guess, target) {
   return result;
 }
 
+function guessedWord(word, guesses) {
+  const guessedWords = guesses.map((guess) => {
+    const letters = guess.letters.map((letter) => {
+      return letter.char;
+    });
+
+    const guessedWord = letters.join("");
+    return guessedWord;
+  });
+
+  return guessedWords.includes(word);
+}
+
+async function isValidWord(word) {
+  try {
+    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+
+    if (!response.ok) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Dictionary API error:", error);
+    return false;
+  }
+}
 function App() {
   /* const [targetWord, setTargetWord] = useState(""); */
   const [currentGuess, setCurrentGuess] = useState("");
@@ -42,9 +69,10 @@ function App() {
   const MAX_ATTEMPTS = 6;
 
   const targetWord = "APPLE";
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = async (event) => {
       const key = event.key;
       // If game is not in playing state ignore input
       if (gameStatus !== "playing") {
@@ -58,6 +86,22 @@ function App() {
         }
         // Enter not working when max attempts reached
         if (currentRow >= MAX_ATTEMPTS) {
+          return;
+        }
+
+        // Validate the word with API Dict
+        console.log("validating:", currentGuess);
+        const validWord = await isValidWord(currentGuess);
+        if (!validWord) {
+          setMessage("Word is not valid");
+          return;
+        } else {
+          setMessage("");
+        }
+
+        // Check if word was already guessed
+        if (guessedWord(currentGuess, guesses)) {
+          setMessage("You already guessed that word");
           return;
         }
 
@@ -102,6 +146,7 @@ function App() {
       // Backspace Key
       if (key === "Backspace") {
         setCurrentGuess((prev) => {
+          setMessage("");
           if (prev.length > 0) {
             return prev.slice(0, -1);
           } else {
@@ -148,7 +193,8 @@ function App() {
             Current guess:{" "}
             <strong>
               {currentGuess} <br />
-              Row: {currentRow + 1} / {MAX_ATTEMPTS} <br /> Status: {gameStatus}
+              Row: {currentRow + 1} / {MAX_ATTEMPTS} <br /> Status: {gameStatus} <br />
+              {message} <br />
             </strong>
           </p>
 
