@@ -99,12 +99,25 @@ function App() {
   }
 
   useEffect(() => {
-    function loadTargetWord() {
-      const randomWord = Math.floor(Math.random() * validWords.words.length);
-      const targetWord = validWords.words[randomWord].toUpperCase();
+    async function loadTargetWord() {
+      let valid = false;
+      let targetWord = "";
+
+      // Control if word from JSON is valid from the API DICT
+      while (!valid) {
+        const randomIndex = Math.floor(Math.random() * validWords.words.length);
+        targetWord = validWords.words[randomIndex].toUpperCase();
+
+        try {
+          valid = await isValidWord(targetWord);
+        } catch (err) {
+          console.error("Error: Not a valid word:", err);
+          valid = false;
+        }
+      }
 
       setTargetWord(targetWord);
-      console.log("Target word je:", targetWord);
+      console.log("Valid target word:", targetWord);
     }
 
     loadTargetWord();
