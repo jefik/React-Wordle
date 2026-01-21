@@ -1,27 +1,154 @@
-.board {
-  background-color: red;
-  color: white;
-}
-
-.cell {
-  width: 60px;
-  height: 60px;
-  border: 2px solid #ccc;
-  margin-right: 8px;
-
+.app {
+  background-color: #121213;
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  &.cell--correct {
-    background-color: green;
-    color: white;
+  color: white;
+
+  .board {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    h1 {
+      margin: 0;
+    }
+    .game-buttons {
+      margin: 10px 0px;
+      display: flex;
+
+      justify-content: center;
+      align-items: center;
+    }
   }
-  &.cell--present {
-    background-color: orange;
-    color: white;
+
+  .keyboard {
+    padding: 10px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+
+    &-row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
   }
-  &.cell--absent {
-    background-color: lightgray;
+
+  .text-danger {
+    padding: 0;
+    margin: 0;
+  }
+  .text-success {
+    padding: 0;
+    margin: 0;
+  }
+
+  .key {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    border: none;
+    background-color: #d3d6da;
+    color: #000;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+
+    &--wide {
+      width: 64px;
+    }
+  }
+
+  .cell {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #3a3a3c;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-transform: uppercase;
     color: white;
+
+    transition: background-color 0s, border-color 0s;
+
+    &--correct {
+      background-color: #538d4e;
+      border: none;
+    }
+
+    &--present {
+      background-color: #b59f3b;
+      border: none;
+    }
+
+    &--absent {
+      background-color: #3a3a3c;
+      border: none;
+    }
+  }
+
+  .game-buttons {
+    .btn {
+      width: 120px;
+      height: 40px;
+      border-radius: 4px;
+      border: none;
+      font-weight: bold;
+
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &-primary {
+        background-color: #538d4e;
+        color: white;
+
+        &:hover {
+          background-color: #31552e;
+        }
+      }
+
+      &-secondary {
+        background-color: #3a3a3c;
+
+        &:hover {
+          background-color: #222224;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 750px) {
+    .board {
+      transform: scale(0.9) !important;
+    }
+
+    .keyboard {
+      transform: scale(0.9) !important;
+    }
+  }
+
+  @media (max-height: 750px) {
+    overflow: hidden;
+    .cell {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+    }
+    .key {
+      height: 40px;
+    }
   }
 }

@@ -187,12 +187,14 @@ function App() {
         // Check if guess word is correct
         if (currentGuess === targetWord) {
           setGameStatus("won");
+          setMessage("You Won!");
           return;
         }
 
         // Check if max attempts reached
         if (currentRow === MAX_ATTEMPTS - 1) {
           setGameStatus("lost");
+          setMessage("You Lost :(");
           return;
         }
 
@@ -246,22 +248,27 @@ function App() {
   return (
     <>
       <div className="app">
-        <div className="board">
+        <motion.div
+          className="board"
+          initial={{ opacity: 0, y: 1000 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
           <h1>Wordle</h1>
-          <p className="text-danger">{message}</p>
-          <p className="text-center">
-            Word is: {showTargetWord ? targetWord : "*****"} <br />
-            <button className="btn btn-primary" onClick={() => setShowTargetWord(!showTargetWord)}>
-              {showTargetWord ? "Hide" : "Reveal"} Word
-            </button>
-            {/*  <br />
-            Current guess:
-            <strong>
-              {currentGuess} <br />
-              Row: {currentRow + 1} / {MAX_ATTEMPTS} <br /> Status: {gameStatus} <br />
-              {message} <br />
-            </strong> */}
-          </p>
+          <p className={gameStatus === "won" ? "text-success" : "text-danger"}>{message}</p>
+          <p className="m-0">Word is: {showTargetWord ? targetWord : "*****"}</p>
+          <div className="row game-buttons">
+            <div className="col-auto flex-shrink-0">
+              <button className="btn btn-primary text-nowrap" onClick={() => setShowTargetWord(!showTargetWord)}>
+                {showTargetWord ? "Hide Word" : "Reveal Word"}
+              </button>
+            </div>
+            <div className="col-auto flex-shrink-0">
+              <button className="btn btn-secondary" onClick={() => window.location.reload()}>
+                New Word
+              </button>
+            </div>
+          </div>
 
           {Array.from({ length: MAX_ATTEMPTS }).map((value, rowIndex) => {
             const guess = guesses[rowIndex];
@@ -350,7 +357,7 @@ function App() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );
