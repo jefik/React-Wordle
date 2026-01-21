@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import validWords from "./words.json";
 import { motion } from "motion/react";
 
+// Func to compare guess word with target word
 function compareGuess(guess, target) {
   const result = Array(guess.length).fill("absent");
   const targetLetters = target.split("");
@@ -29,6 +30,7 @@ function compareGuess(guess, target) {
 
   return result;
 }
+
 // Func to check if word has already beenm guessed
 function guessedWord(word, guesses) {
   // Map over all previous guesses
@@ -63,6 +65,8 @@ async function isValidWord(word) {
 }
 
 function App() {
+  /* console.log("1. LOADING WHOLE APP COMPONENT"); */
+  // Game states
   const [targetWord, setTargetWord] = useState("");
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses] = useState([]);
@@ -71,20 +75,60 @@ function App() {
   const [error, setError] = useState(null);
   const [currentRow, setCurrentRow] = useState(0);
   const [isInvalid, setIsInvalid] = useState(false);
-  const WORD_LENGTH = 5;
-  const MAX_ATTEMPTS = 6;
+  const [message, setMessage] = useState("");
+  const [showTargetWord, setShowTargetWord] = useState(false);
+  const [keyStatus, setKeyStatus] = useState({});
+
+  // Constants
   const Keyboard = [
     ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
     ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
     ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "BACKSPACE"],
   ];
-  const [keyStatus, setKeyStatus] = useState({});
+  const WORD_LENGTH = 5;
+  const MAX_ATTEMPTS = 6;
 
-  /* const targetWord = "APPLE"; */
-  const [message, setMessage] = useState("");
-  const [showTargetWord, setShowTargetWord] = useState(false);
+  // Func to pick random word to guess
+  async function loadTargetWord() {
+    let valid = false;
+    let targetWord = "";
 
-  function updateKeyStatus(guessLetters) {
+    // Control if word from JSON is valid from the API DICT
+    while (!valid) {
+      const randomIndex = Math.floor(Math.random() * validWords.words.length);
+      targetWord = validWords.words[randomIndex].toUpperCase();
+
+      try {
+        valid = await isValidWord(targetWord);
+      } catch (err) {
+        console.error("Error: Not a valid word:", err);
+        valid = false;
+      }
+    }
+
+    setTargetWord(targetWord);
+    /* console.log("Valid target word:", targetWord); */
+  }
+
+  // Pick and load random word to guess
+  useEffect(() => {
+    loadTargetWord();
+  }, []);
+
+  // Func to reset game
+  const resetGame = () => {
+    setGuesses([]);
+    setCurrentGuess("");
+    setCurrentRow(0);
+    setKeyStatus({});
+    setGameStatus("playing");
+    setMessage("");
+    // Load new word
+    loadTargetWord();
+  };
+
+  // Func to add status to keys on keyboard
+  const updateKeyStatus = (guessLetters) => {
     setKeyStatus((prev) => {
       const newStatus = { ...prev };
       guessLetters.forEach(({ char, status }) => {
@@ -96,42 +140,17 @@ function App() {
       });
       return newStatus;
     });
-  }
+  };
 
-  useEffect(() => {
-    async function loadTargetWord() {
-      let valid = false;
-      let targetWord = "";
+  // Func to handle all inputs and game logic
+  const handleInput = useCallback(
+    async (event) => {
+      if (gameStatus !== "playing") return;
 
-      // Control if word from JSON is valid from the API DICT
-      while (!valid) {
-        const randomIndex = Math.floor(Math.random() * validWords.words.length);
-        targetWord = validWords.words[randomIndex].toUpperCase();
-
-        try {
-          valid = await isValidWord(targetWord);
-        } catch (err) {
-          console.error("Error: Not a valid word:", err);
-          valid = false;
-        }
-      }
-
-      setTargetWord(targetWord);
-      console.log("Valid target word:", targetWord);
-    }
-
-    loadTargetWord();
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = async (event) => {
-      const key = event.key;
-      // If game is not in playing state ignore input
-      if (gameStatus !== "playing") {
-        return;
-      }
-      // Enter Key
-      if (key === "Enter") {
+      const key = event.toUpperCase();
+      /*  console.log("USED KEY:", key); */
+      // ENTER KEY
+      if (key === "ENTER") {
         // Enter not working when guess word length !== 5
         if (currentGuess.length !== WORD_LENGTH) {
           return;
@@ -142,7 +161,7 @@ function App() {
         }
 
         // Validate the word with API Dict
-        console.log("validating:", currentGuess);
+        /* console.log("validating:", currentGuess); */
         const validWord = await isValidWord(currentGuess);
         if (!validWord) {
           setMessage("Word is not valid");
@@ -166,7 +185,7 @@ function App() {
         // Process the guess word
         // Compare the current guess word with target word
         const compare = compareGuess(currentGuess, targetWord);
-        console.log("compare result:", compare);
+        /* console.log("compare result:", compare); */
 
         // Split the guessed word into letters and add their status
         const guessletters = currentGuess.split("").map((char, index) => ({
@@ -182,12 +201,18 @@ function App() {
           },
         ]);
 
-        updateKeyStatus(guessletters);
+        /* updateKeyStatus(guessletters); */
+        setTimeout(() => {
+          updateKeyStatus(guessletters);
+        }, 1000);
 
         // Check if guess word is correct
         if (currentGuess === targetWord) {
-          setGameStatus("won");
-          setMessage("You Won!");
+          setTimeout(() => {
+            setGameStatus("won");
+            setMessage("You Won!");
+          }, 1200);
+
           return;
         }
 
@@ -200,11 +225,10 @@ function App() {
 
         setCurrentGuess("");
         setCurrentRow((prevRow) => prevRow + 1);
-        return;
       }
 
-      // Backspace Key
-      if (key === "Backspace") {
+      // BACKSPACE KEY
+      else if (key === "BACKSPACE") {
         setCurrentGuess((prev) => {
           setMessage("");
           if (prev.length > 0) {
@@ -216,8 +240,8 @@ function App() {
         return;
       }
 
-      // A-Z Keys
-      if (/^[a-zA-Z]$/.test(key)) {
+      // A-Z KEYS
+      else if (/^[a-zA-Z]$/.test(key)) {
         setCurrentGuess((prev) => {
           if (prev.length < WORD_LENGTH) {
             return prev + key.toUpperCase();
@@ -226,16 +250,27 @@ function App() {
           }
         });
       }
+    },
+    [currentGuess, currentRow, gameStatus, guesses, targetWord]
+  );
+
+  // Func for clicks on virtual keyboard
+  const handleKeyClick = (letter) => {
+    handleInput(letter);
+  };
+
+  // Event listener for all inputs
+  useEffect(() => {
+    /* console.log("2. LOADING EVENT LISTENER"); */
+    const handleKeyDown = (event) => {
+      handleInput(event.key);
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleInput]);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [currentGuess, currentRow, gameStatus, targetWord]);
-
-  // Debugging
+  /*   // Debugging
   useEffect(() => {
     console.group("APP STATE CHANGED");
     console.log("guesses:", guesses);
@@ -243,7 +278,7 @@ function App() {
     console.log("currentRow:", currentRow);
     console.log("gameStatus:", gameStatus);
     console.groupEnd();
-  }, [guesses, currentGuess, currentRow, gameStatus]);
+  }, [guesses, currentGuess, currentRow, gameStatus]); */
 
   return (
     <>
@@ -264,7 +299,7 @@ function App() {
               </button>
             </div>
             <div className="col-auto flex-shrink-0">
-              <button className="btn btn-secondary" onClick={() => window.location.reload()}>
+              <button className="btn btn-secondary" onClick={resetGame}>
                 New Word
               </button>
             </div>
