@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import validWords from "./words.json";
 
 function compareGuess(guess, target) {
   const result = Array(guess.length).fill("absent");
@@ -29,13 +28,16 @@ function compareGuess(guess, target) {
 
   return result;
 }
-
+// Func to check if word has already beenm guessed
 function guessedWord(word, guesses) {
+  // Map over all previous guesses
   const guessedWords = guesses.map((guess) => {
+    // Map letters array to get chars of each guess word
     const letters = guess.letters.map((letter) => {
       return letter.char;
     });
 
+    // Join the letter back into the string word
     const guessedWord = letters.join("");
     return guessedWord;
   });
@@ -43,6 +45,7 @@ function guessedWord(word, guesses) {
   return guessedWords.includes(word);
 }
 
+// API for validating inputs words
 async function isValidWord(word) {
   try {
     const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
@@ -73,25 +76,12 @@ function App() {
   const [showTargetWord, setShowTargetWord] = useState(false);
 
   useEffect(() => {
-    async function loadTargetWord() {
-      try {
-        let valid = false;
-        let word = "";
+    function loadTargetWord() {
+      const randomWord = Math.floor(Math.random() * validWords.words.length);
+      const targetWord = validWords.words[randomWord].toUpperCase();
 
-        while (!valid) {
-          const response = await fetch("https://random-word-api.herokuapp.com/word?length=5");
-          const data = await response.json();
-
-          word = data[0].toUpperCase();
-          valid = await isValidWord(word);
-          console.log("Fetched word:", word, "Valid:", valid);
-        }
-
-        setTargetWord(word);
-        console.log("Valid target word:", word);
-      } catch (error) {
-        console.error("Failed to fetch target word:", error);
-      }
+      setTargetWord(targetWord);
+      console.log("Target word je:", targetWord);
     }
 
     loadTargetWord();
@@ -132,18 +122,21 @@ function App() {
         }
 
         // Process the guess word
+        // Compare the current guess word with target word
         const compare = compareGuess(currentGuess, targetWord);
         console.log("compare result:", compare);
 
-        const letters = currentGuess.split("").map((char, index) => ({
+        // Split the guessed word into letters and add their status
+        const guessletters = currentGuess.split("").map((char, index) => ({
           char,
           status: compare[index],
         }));
 
+        // Add the new guess word to the guesses
         setGuesses((prev) => [
-          ...prev,
+          ...prev, // All previous guesses
           {
-            letters,
+            letters: guessletters, // Add the current new guess
           },
         ]);
 
@@ -229,7 +222,7 @@ function App() {
 
             return (
               <div key={rowIndex} className="d-flex justify-content-center mb-2">
-                {Array.from({ length: WORD_LENGTH }).map((_, cellIndex) => {
+                {Array.from({ length: WORD_LENGTH }).map((value, cellIndex) => {
                   let char = "";
                   let status = null;
 
